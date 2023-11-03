@@ -1,0 +1,15 @@
+build
+image.bmp
+gmon.out
+analysis.txt
+.clangd
+.clang-tidy
+compile_commands.json
+.cache
+/external/
+llama*
+assets/Models
+logs
+.idea
+cmake-build-debug
+libs
