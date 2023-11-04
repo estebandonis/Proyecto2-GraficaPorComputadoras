@@ -109,7 +109,7 @@ public:
         break;
       }
      
-      point(x, y, W);
+//      point(x, y, W);
       
       d += 1;
     }
@@ -127,48 +127,47 @@ public:
 
       SDL_RenderDrawPoint(renderer, x, y);
     }
-  } 
- 
+  }
+
   void render() {
-    
-    // draw left side of the screen
-    
-//    for (int x = 0; x < SCREEN_WIDTH; x += BLOCK) {
-//      for (int y = 0; y < SCREEN_HEIGHT; y += BLOCK) {
-//        int i = static_cast<int>(x / BLOCK);
-//        int j = static_cast<int>(y / BLOCK);
-//
-//        if (map[j][i] != ' ') {
-//          std::string mapHit;
-//          mapHit = map[j][i];
-//          Color c = Color(255, 0, 0);
-//          rect(x, y, mapHit);
-//        }
-//      }
-//    }
-
-//    for (int i = 1; i < SCREEN_WIDTH; i++) {
-//      float a = player.a + player.fov / 2 - player.fov * i / SCREEN_WIDTH;
-//      cast_ray(a);
-//    }
-
-    // draw right side of the screen
-    
+    // Lanzar rayos y dibujar estacas en el lado izquierdo de la pantalla
     for (int i = 1; i < SCREEN_WIDTH; i++) {
-      double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
-      Impact impact = cast_ray(a);
-      float d = impact.d;
-      Color c = Color(255, 0, 0);
+        double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
+        Impact impact = cast_ray(a);
+        float d = impact.d;
+        Color c = Color(255, 0, 0);
 
-      if (d == 0) {
-        print("you lose");
-        exit(1);
-      }
-      int x = SCREEN_WIDTH + i;
-      float h = static_cast<float>(SCREEN_HEIGHT)/static_cast<float>(d) * static_cast<float>(scale);
-      draw_stake(x, h, impact);
+        if (d == 0) {
+            print("you lose");
+            exit(1);
+        }
+        int x = i;
+        float h = static_cast<float>(SCREEN_HEIGHT) / static_cast<float>(d) * static_cast<float>(scale);
+        draw_stake(x, h, impact);
     }
 
+    // Dibujar el minimapa en la esquina superior derecha de la pantalla
+    int minimapSize = SCREEN_WIDTH / 4;  // Tamaño del minimapa (ajustable)
+    int startX = SCREEN_WIDTH - minimapSize;  // Coordenada x de inicio del minimapa
+    int startY = 0;  // Coordenada y de inicio del minimapa
+    int endX = SCREEN_WIDTH;  // Coordenada x de fin del minimapa
+    int endY = minimapSize;  // Coordenada y de fin del minimapa
+
+    int smallBlockSize = BLOCK / 4;  // Tamaño del bloque en el minimapa (ajustable)
+
+    for (int y = startY; y < endY; y += BLOCK) {
+        for (int x = startX; x < endX; x += BLOCK) {
+            int i = static_cast<int>((x - startX) / BLOCK);
+            int j = static_cast<int>(y / BLOCK);
+
+            if (map[j][i] != ' ') {
+                std::string mapHit;
+                mapHit = map[j][i];
+                Color c = Color(255, 0, 0);
+                rect(x, y, mapHit);
+            }
+        }
+    }
   }
 
   Player player;
