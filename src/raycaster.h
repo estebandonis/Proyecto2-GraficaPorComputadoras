@@ -1,6 +1,7 @@
 #pragma once
 
 #include <print.h>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <SDL_render.h>
@@ -65,11 +66,11 @@ public:
     SDL_RenderDrawPoint(renderer, x, y);
   }
 
-  void rect(int x, int y, const std::string& mapHit) {
-    for(int cx = x; cx < x + BLOCK; cx++) {
-      for(int cy = y; cy < y + BLOCK; cy++) {
-        int tx = ((cx - x) * tsize) / BLOCK;
-        int ty = ((cy - y) * tsize) / BLOCK;
+  void rect(int x, int y, int blockSize, const std::string& mapHit) {
+    for(int cx = x; cx < x + blockSize; cx++) {
+      for(int cy = y; cy < y + blockSize; cy++) {
+        int tx = ((cx - x) * tsize) / blockSize;
+        int ty = ((cy - y) * tsize) / blockSize;
 
         Color c = ImageLoader::getPixelColor(mapHit, tx, ty);
         SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b , 255);
@@ -147,24 +148,26 @@ public:
     }
 
     // Dibujar el minimapa en la esquina superior derecha de la pantalla
-    int minimapSize = SCREEN_WIDTH / 4;  // Tamaño del minimapa (ajustable)
+    int minimapSize = SCREEN_WIDTH / 8;  // Make the minimap smaller
     int startX = SCREEN_WIDTH - minimapSize;  // Coordenada x de inicio del minimapa
     int startY = 0;  // Coordenada y de inicio del minimapa
     int endX = SCREEN_WIDTH;  // Coordenada x de fin del minimapa
     int endY = minimapSize;  // Coordenada y de fin del minimapa
+    // Adjust the size of the minimap and each block
+    int smallBlockSize = BLOCK / 8;  // Make each block smaller
 
-    int smallBlockSize = BLOCK / 4;  // Tamaño del bloque en el minimapa (ajustable)
+    for (int y = startY; y < endY; y += smallBlockSize) {  // Use smallBlockSize as the loop increment
+        for (int x = startX; x < endX; x += smallBlockSize) {  // Use smallBlockSize as the loop increment
+            int i = std::min(static_cast<int>((x - startX) / smallBlockSize), static_cast<int>(map[0].size() - 1));
+            int j = std::min(static_cast<int>((y - startY) / smallBlockSize), static_cast<int>(map.size() - 1));
 
-    for (int y = startY; y < endY; y += BLOCK) {
-        for (int x = startX; x < endX; x += BLOCK) {
-            int i = static_cast<int>((x - startX) / BLOCK);
-            int j = static_cast<int>(y / BLOCK);
+            int min = std::min(1, 10);
 
             if (map[j][i] != ' ') {
                 std::string mapHit;
                 mapHit = map[j][i];
                 Color c = Color(255, 0, 0);
-                rect(x, y, mapHit);
+                rect(x, y, smallBlockSize, mapHit);  // Pass smallBlockSize to the rect function
             }
         }
     }

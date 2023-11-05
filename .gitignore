@@ -13,3 +13,4 @@ logs
 .idea
 cmake-build-debug
 libs
+.vscode

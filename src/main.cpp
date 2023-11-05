@@ -2,6 +2,8 @@
 #include <SDL_events.h>
 #include <SDL_render.h>
 #include <SDL_video.h>
+#include <SDL2/SDL_ttf.h>  // Include the SDL_ttf header
+#include <SDL2/SDL_mixer.h>
 
 #include "color.h"
 #include "imageloader.h"
@@ -9,6 +11,7 @@
 
 SDL_Window* window;
 SDL_Renderer* renderer;
+TTF_Font* font;  // Declare the font variable
 
 void clear() {
   SDL_SetRenderDrawColor(renderer, 56, 56, 56, 255);
@@ -48,81 +51,143 @@ Raycaster handleMouseEvents(SDL_Event event, Raycaster r) {
     return r;
 }
 
-
-int main() {
-
-  SDL_Init(SDL_INIT_VIDEO);
-  ImageLoader::init();
-
-  window = SDL_CreateWindow("DOOM", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-  ImageLoader::loadImage("+", "assets/wall3.png");
-  ImageLoader::loadImage("-", "assets/wall1.png");
-  ImageLoader::loadImage("|", "assets/wall2.png");
-  ImageLoader::loadImage("*", "assets/wall4.png");
-  ImageLoader::loadImage("g", "assets/wall5.png");
-
-  Raycaster r = { renderer };
-  r.load_map("assets/map.txt");
-
-  bool running = true;
-  int speed = 10;
-
-  int frameCount = 0;
-  Uint32 startTime = SDL_GetTicks();
-  Uint32 currentTime = startTime;
-
-  while(running) {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT) {
-        running = false;
-        break;
-      }
-      if (event.type == SDL_KEYDOWN) {
-        switch(event.key.keysym.sym ){
-          case SDLK_LEFT:
-            r.player.a += 3.14/24;
-            break;
-          case SDLK_RIGHT:
-            r.player.a -= 3.14/24;
-            break;
-          case SDLK_UP:
-            r.player.x += speed * cos(r.player.a);
-            r.player.y += speed * sin(r.player.a);
-            break;
-          case SDLK_DOWN:
-            r.player.x -= speed * cos(r.player.a);
-            r.player.y -= speed * sin(r.player.a);
-            break;
-           default:
-            break;
-        }
-      } else if (event.type == SDL_MOUSEMOTION) {
-          r = handleMouseEvents(event, r);
-      }
-    }
-
+// Function to display the welcome message
+void displayWelcomeMessage() {
     clear();
-    draw_floor();
 
-    r.render();
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "Welcome to Minecraft DOOM style!", textColor);
+    SDL_Texture* welcomeMessage = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
 
-    // render
+    SDL_Rect messageRect;
+    messageRect.x = (SCREEN_WIDTH - surfaceMessage->w) / 2;
+    messageRect.y = (SCREEN_HEIGHT - surfaceMessage->h) / 2;
+    messageRect.w = surfaceMessage->w;
+    messageRect.h = surfaceMessage->h;
 
+    SDL_RenderCopy(renderer, welcomeMessage, nullptr, &messageRect);
     SDL_RenderPresent(renderer);
 
-    frameCount++;
-    // Calculate and display FPS
-    if (SDL_GetTicks() - currentTime >= 1000) {
-      currentTime = SDL_GetTicks();
-      std::string title = "Doom - FPS: " + std::to_string(frameCount);
-      SDL_SetWindowTitle(window, title.c_str());
-      frameCount = 0;
-    }
-  }
+    SDL_FreeSurface(surfaceMessage);
+    SDL_DestroyTexture(welcomeMessage);
+}
 
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+int main() {
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    TTF_Init();  // Initialize the SDL_ttf library
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);  // Initialize SDL_mixer
+
+    window = SDL_CreateWindow("DOOM", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    // Load the font
+    font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial Narrow.ttf", 24);  // Replace with the actual path to your font file and desired font size
+    if (!font) {
+        std::cout << "TTF_OpenFont error: " << TTF_GetError() << std::endl;
+    }
+
+    // Load the music file
+    Mix_Music* music = Mix_LoadMUS("/Users/estebandonis/Downloads/mine.mp3");
+    if (!music) {
+        std::cout << "Mix_LoadMUS error: " << Mix_GetError() << std::endl;
+    }
+
+    // Load the sound effect file
+    Mix_Chunk* soundEffect = Mix_LoadWAV("/Users/estebandonis/Downloads/minecraft-footsteps.wav");
+    if (!soundEffect) {
+        // Handle sound effect loading error
+        // Print an error message or throw an exception
+    }
+
+    // Play the music in an infinite loop
+    if (Mix_PlayMusic(music, -1) == -1) {
+        // Handle music playing error
+        // Print an error message or throw an exception
+    }
+
+    // Load the images
+    ImageLoader::init();
+    ImageLoader::loadImage("+", "assets/wall3.png");
+    ImageLoader::loadImage("-", "assets/wall1.png");
+    ImageLoader::loadImage("|", "assets/wall2.png");
+    ImageLoader::loadImage("*", "assets/wall4.png");
+    ImageLoader::loadImage("g", "assets/wall5.png");
+
+    Raycaster r = { renderer };
+    r.load_map("assets/map.txt");
+
+    bool running = true;
+    int speed = 10;
+
+    int frameCount = 0;
+
+    displayWelcomeMessage();
+
+    // Mini event loop
+    Uint32 startTime = SDL_GetTicks();
+    Uint32 currentTime = startTime;
+    SDL_Event event;
+    while (SDL_GetTicks() - startTime < 2000) { // Run the loop for 3 seconds
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                SDL_Quit();
+                return 0;
+            }
+        }
+    }
+
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+                break;
+            }
+            if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_LEFT:
+                        r.player.a += 3.14 / 24;
+                        Mix_PlayChannel(-1, soundEffect, 0);
+                        break;
+                    case SDLK_RIGHT:
+                        r.player.a -= 3.14 / 24;
+                        Mix_PlayChannel(-1, soundEffect, 0);
+                        break;
+                    case SDLK_UP:
+                        r.player.x += speed * cos(r.player.a);
+                        r.player.y += speed * sin(r.player.a);
+                        Mix_PlayChannel(-1, soundEffect, 0);
+                        break;
+                    case SDLK_DOWN:
+                        r.player.x -= speed * cos(r.player.a);
+                        r.player.y -= speed * sin(r.player.a);
+                        Mix_PlayChannel(-1, soundEffect, 0);
+                        break;
+                    default:
+                        break;
+                }
+            } else if (event.type == SDL_MOUSEMOTION) {
+                r = handleMouseEvents(event, r);
+            }
+        }
+
+        clear();
+        draw_floor();
+
+        r.render();
+
+        // render
+        SDL_RenderPresent(renderer);
+
+        frameCount++;
+        // Calculate and display FPS
+        if (SDL_GetTicks() - currentTime >= 1000) {
+            currentTime = SDL_GetTicks();
+            std::string title = "Doom - FPS: " + std::to_string(frameCount);
+            SDL_SetWindowTitle(window, title.c_str());
+            frameCount = 0;
+        }
+    }
+
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
