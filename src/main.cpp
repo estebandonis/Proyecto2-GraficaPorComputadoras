@@ -72,6 +72,46 @@ void displayWelcomeMessage() {
     SDL_DestroyTexture(welcomeMessage);
 }
 
+void displayWinningMessage() {
+    clear();
+
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "You reached the goal!", textColor);
+    SDL_Texture* welcomeMessage = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+    SDL_Rect messageRect;
+    messageRect.x = (SCREEN_WIDTH - surfaceMessage->w) / 2;
+    messageRect.y = (SCREEN_HEIGHT - surfaceMessage->h) / 2;
+    messageRect.w = surfaceMessage->w;
+    messageRect.h = surfaceMessage->h;
+
+    SDL_RenderCopy(renderer, welcomeMessage, nullptr, &messageRect);
+    SDL_RenderPresent(renderer);
+
+    SDL_FreeSurface(surfaceMessage);
+    SDL_DestroyTexture(welcomeMessage);
+}
+
+void displayLosingMessage() {
+    clear();
+
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "You lost, but try again!", textColor);
+    SDL_Texture* welcomeMessage = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+    SDL_Rect messageRect;
+    messageRect.x = (SCREEN_WIDTH - surfaceMessage->w) / 2;
+    messageRect.y = (SCREEN_HEIGHT - surfaceMessage->h) / 2;
+    messageRect.w = surfaceMessage->w;
+    messageRect.h = surfaceMessage->h;
+
+    SDL_RenderCopy(renderer, welcomeMessage, nullptr, &messageRect);
+    SDL_RenderPresent(renderer);
+
+    SDL_FreeSurface(surfaceMessage);
+    SDL_DestroyTexture(welcomeMessage);
+}
+
 int main() {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
     TTF_Init();  // Initialize the SDL_ttf library
@@ -146,11 +186,9 @@ int main() {
                 switch (event.key.keysym.sym) {
                     case SDLK_LEFT:
                         r.player.a += 3.14 / 24;
-                        Mix_PlayChannel(-1, soundEffect, 0);
                         break;
                     case SDLK_RIGHT:
                         r.player.a -= 3.14 / 24;
-                        Mix_PlayChannel(-1, soundEffect, 0);
                         break;
                     case SDLK_UP:
                         r.player.x += speed * cos(r.player.a);
@@ -173,7 +211,17 @@ int main() {
         clear();
         draw_floor();
 
-        r.render();
+        int res = r.render();
+
+        if (res == 0) {
+            displayWinningMessage();
+            SDL_Delay(2000);
+            running = false;
+        } else if (res == 1) {
+            displayLosingMessage();
+            SDL_Delay(2000);
+            running = false;
+        }
 
         // render
         SDL_RenderPresent(renderer);

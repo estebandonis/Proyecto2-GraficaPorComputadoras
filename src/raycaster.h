@@ -130,7 +130,7 @@ public:
     }
   }
 
-  void render() {
+  int render() {
     // Lanzar rayos y dibujar estacas en el lado izquierdo de la pantalla
     for (int i = 1; i < SCREEN_WIDTH; i++) {
         double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
@@ -138,39 +138,71 @@ public:
         float d = impact.d;
         Color c = Color(255, 0, 0);
 
-        if (d == 0) {
-            print("you lose");
-            exit(1);
+        if (d == 0 && impact.mapHit == "g") {
+          return 0;
+        } else if (d == 0) {
+          return 1;
         }
+
         int x = i;
         float h = static_cast<float>(SCREEN_HEIGHT) / static_cast<float>(d) * static_cast<float>(scale);
         draw_stake(x, h, impact);
     }
 
     // Dibujar el minimapa en la esquina superior derecha de la pantalla
-    int minimapSize = SCREEN_WIDTH / 8;  // Make the minimap smaller
-    int startX = SCREEN_WIDTH - minimapSize;  // Coordenada x de inicio del minimapa
+    int minimapSize = SCREEN_WIDTH / 7;  // Make the minimap smaller
+    int startX = SCREEN_WIDTH - minimapSize - 50;  // Coordenada x de inicio del minimapa, moved 10 pixels to the left
     int startY = 0;  // Coordenada y de inicio del minimapa
-    int endX = SCREEN_WIDTH;  // Coordenada x de fin del minimapa
-    int endY = minimapSize;  // Coordenada y de fin del minimapa
+    int endX = SCREEN_WIDTH - 10;  // Coordenada x de fin del minimapa, moved 10 pixels to the left
+    int endY = minimapSize - 10;  // Coordenada y de fin del minimapa
     // Adjust the size of the minimap and each block
-    int smallBlockSize = BLOCK / 8;  // Make each block smaller
+    int smallBlockSize = BLOCK / 5;  // Make each block smaller
+
+    // Set the draw color to black
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+    // Create an SDL_Rect for the minimap
+    SDL_Rect minimapRect;
+    minimapRect.x = startX;
+    minimapRect.y = startY;
+    minimapRect.w = minimapSize + 40;
+    minimapRect.h = minimapSize - 10;
+
+    // Fill the minimap area with the background color
+    SDL_RenderFillRect(renderer, &minimapRect);
 
     for (int y = startY; y < endY; y += smallBlockSize) {  // Use smallBlockSize as the loop increment
-        for (int x = startX; x < endX; x += smallBlockSize) {  // Use smallBlockSize as the loop increment
-            int i = std::min(static_cast<int>((x - startX) / smallBlockSize), static_cast<int>(map[0].size() - 1));
-            int j = std::min(static_cast<int>((y - startY) / smallBlockSize), static_cast<int>(map.size() - 1));
+      for (int x = startX; x < endX; x += smallBlockSize) {  // Use smallBlockSize as the loop increment
+        int i = std::min(static_cast<int>((x - startX) / smallBlockSize), static_cast<int>(map[0].size() - 1));
+        int j = std::min(static_cast<int>((y - startY) / smallBlockSize), static_cast<int>(map.size() - 1));
 
-            int min = std::min(1, 10);
+        int min = std::min(1, 10);
 
-            if (map[j][i] != ' ') {
-                std::string mapHit;
-                mapHit = map[j][i];
-                Color c = Color(255, 0, 0);
-                rect(x, y, smallBlockSize, mapHit);  // Pass smallBlockSize to the rect function
-            }
+        if (map[j][i] != ' ') {
+            std::string mapHit;
+            mapHit = map[j][i];
+            Color c = Color(255, 0, 0);
+            rect(x, y, smallBlockSize, mapHit);  // Pass smallBlockSize to the rect function
         }
+      }
     }
+
+    // Dibujar el jugador en el minimapa
+    // Scale the player's coordinates to the minimap's size
+    int minimapPlayerX = startX + 10 + ((player.x * 1.8) / smallBlockSize);
+    int minimapPlayerY = startY + 10 + ((player.y * 1.8) / smallBlockSize);
+
+    // Ensure the point is within the bounds of the minimap
+    minimapPlayerX = std::max(startX, std::min(minimapPlayerX, endX - 1));
+    minimapPlayerY = std::max(startY, std::min(minimapPlayerY, endY - 1));
+
+    // Set the draw color to white
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    // Draw a point at the player's position on the minimap
+    SDL_RenderDrawPoint(renderer, minimapPlayerX, minimapPlayerY);
+
+    return 2;
   }
 
   Player player;
