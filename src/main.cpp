@@ -121,19 +121,19 @@ int main() {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     // Load the font
-    font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial Narrow.ttf", 24);  // Replace with the actual path to your font file and desired font size
+    font = TTF_OpenFont("../assets/Arial Narrow.ttf", 24);  // Replace with the actual path to your font file and desired font size
     if (!font) {
         std::cout << "TTF_OpenFont error: " << TTF_GetError() << std::endl;
     }
 
     // Load the music file
-    Mix_Music* music = Mix_LoadMUS("/Users/estebandonis/Downloads/mine.mp3");
+    Mix_Music* music = Mix_LoadMUS("../assets/mine.mp3");
     if (!music) {
         std::cout << "Mix_LoadMUS error: " << Mix_GetError() << std::endl;
     }
 
     // Load the sound effect file
-    Mix_Chunk* soundEffect = Mix_LoadWAV("/Users/estebandonis/Downloads/minecraft-footsteps.wav");
+    Mix_Chunk* soundEffect = Mix_LoadWAV("../assets/minecraft-footsteps.wav");
     if (!soundEffect) {
         // Handle sound effect loading error
         // Print an error message or throw an exception
