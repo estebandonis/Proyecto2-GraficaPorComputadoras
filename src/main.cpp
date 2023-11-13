@@ -112,6 +112,15 @@ void displayLosingMessage() {
     SDL_DestroyTexture(welcomeMessage);
 }
 
+void drawUI(int value) {
+    int size = 720;
+    if (value == 0){
+        ImageLoader::render(renderer, "p", SCREEN_WIDTH/2.0f - size/2.0f, SCREEN_HEIGHT - size, size);
+    } else {
+        ImageLoader::render(renderer, "pg", SCREEN_WIDTH/2.0f - size/2.0f, SCREEN_HEIGHT - size, size);
+    }
+}
+
 int main() {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
     TTF_Init();  // Initialize the SDL_ttf library
@@ -152,6 +161,8 @@ int main() {
     ImageLoader::loadImage("|", "assets/wall2.png");
     ImageLoader::loadImage("*", "assets/wall4.png");
     ImageLoader::loadImage("g", "assets/wall5.png");
+    ImageLoader::loadImage("p", "assets/ui.png");
+    ImageLoader::loadImage("pg", "assets/ui2.png");
 
     Raycaster r = { renderer };
     r.load_map("assets/map.txt");
@@ -176,6 +187,8 @@ int main() {
         }
     }
 
+    int value = 0;
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -191,11 +204,21 @@ int main() {
                         r.player.a -= 3.14 / 24;
                         break;
                     case SDLK_UP:
+                        if (value == 0){
+                            value = 1;
+                        } else {
+                            value = 0;
+                        }
                         r.player.x += speed * cos(r.player.a);
                         r.player.y += speed * sin(r.player.a);
                         Mix_PlayChannel(-1, soundEffect, 0);
                         break;
                     case SDLK_DOWN:
+                        if (value == 0){
+                            value = 1;
+                        } else {
+                            value = 0;
+                        }
                         r.player.x -= speed * cos(r.player.a);
                         r.player.y -= speed * sin(r.player.a);
                         Mix_PlayChannel(-1, soundEffect, 0);
@@ -212,6 +235,8 @@ int main() {
         draw_floor();
 
         int res = r.render();
+
+        drawUI(value);
 
         if (res == 0) {
             displayWinningMessage();
