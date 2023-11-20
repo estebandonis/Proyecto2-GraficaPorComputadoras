@@ -1,6 +1,6 @@
 # Proyecto2-GraficaPorComputadoras
 
-
+* Activar sonido para escuchar música y efectos
 
 
 
