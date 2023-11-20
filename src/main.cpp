@@ -261,7 +261,7 @@ int main() {
             } else if (event.type == SDL_MOUSEMOTION) {
                 r = handleMouseEvents(event, r);
             } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-                if (event.button.button == SDL_BUTTON_LEFT) {
+                if (event.button.button == SDL_BUTTON_RIGHT) {
                     int res = r.render();
                     
                     if (res == 0) {
