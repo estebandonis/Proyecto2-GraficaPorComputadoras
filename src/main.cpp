@@ -86,7 +86,7 @@ void displayWelcomeMessage() {
     SDL_RenderClear(renderer);
 
     SDL_Color textColor = { 255, 255, 255, 255 };
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "Welcome to Minecraft DOOM style!", textColor);
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "Welcome to Minecraft DOOM style! (Encuentra la obsidiana y da click derecho)", textColor);
     SDL_Texture* welcomeMessage = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
 
     SDL_Rect messageRect;
