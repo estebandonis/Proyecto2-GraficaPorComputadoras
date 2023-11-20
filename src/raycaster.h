@@ -131,6 +131,9 @@ public:
   }
 
   int render() {
+
+    bool flag = false;
+
     // Lanzar rayos y dibujar estacas en el lado izquierdo de la pantalla
     for (int i = 1; i < SCREEN_WIDTH; i++) {
         double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
@@ -138,15 +141,17 @@ public:
         float d = impact.d;
         Color c = Color(255, 0, 0);
 
-        if (d == 0 && impact.mapHit == "g") {
-          return 0;
-        } else if (d == 0) {
+        if (d == 0) {
           return 1;
         }
 
         int x = i;
         float h = static_cast<float>(SCREEN_HEIGHT) / static_cast<float>(d) * static_cast<float>(scale);
         draw_stake(x, h, impact);
+
+        if (impact.mapHit == "g") {
+          flag = true;
+        }
     }
 
     // Dibujar el minimapa en la esquina superior derecha de la pantalla
@@ -185,6 +190,8 @@ public:
             rect(x, y, smallBlockSize, mapHit);  // Pass smallBlockSize to the rect function
         }
       }
+    
+      if (flag) return 0;
     }
 
     // Dibujar el jugador en el minimapa

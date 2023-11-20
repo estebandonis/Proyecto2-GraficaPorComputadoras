@@ -14,13 +14,42 @@ SDL_Renderer* renderer;
 TTF_Font* font;  // Declare the font variable
 
 void clear() {
-  SDL_SetRenderDrawColor(renderer, 56, 56, 56, 255);
-  SDL_RenderClear(renderer);
+    // Define the colors at the top and bottom of the screen
+    Color topColor = {135, 206, 235, 255};  // Sky blue
+    Color bottomColor = {25, 25, 112, 255};  // Midnight blue
+
+    // Draw each row of the screen
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        // Calculate the ratio of the current row to the screen height
+        float ratio = static_cast<float>(y) / SCREEN_HEIGHT;
+
+        // Calculate the color for this row by linearly interpolating between the top and bottom colors
+        Color rowColor;
+        rowColor.r = static_cast<Uint8>(topColor.r * (1 - ratio) + bottomColor.r * ratio);
+        rowColor.g = static_cast<Uint8>(topColor.g * (1 - ratio) + bottomColor.g * ratio);
+        rowColor.b = static_cast<Uint8>(topColor.b * (1 - ratio) + bottomColor.b * ratio);
+        rowColor.a = 255;
+
+        // Set the draw color to the color for this row
+        SDL_SetRenderDrawColor(renderer, rowColor.r, rowColor.g, rowColor.b, rowColor.a);
+
+        // Draw the row
+        SDL_Rect row;
+        row.x = 0;
+        row.y = y;
+        row.w = SCREEN_WIDTH;
+        row.h = 1;
+        SDL_RenderFillRect(renderer, &row);
+    }
 }
 
-void draw_floor() {
+void draw_floor(int value) {
     // floor color
-    SDL_SetRenderDrawColor(renderer, 112, 122, 122, 255);
+    if (value == 0){
+        SDL_SetRenderDrawColor(renderer, 160, 75, 0, 255);
+    } else {
+        SDL_SetRenderDrawColor(renderer, 150, 75, 0, 255);
+    }
     SDL_Rect rect = {
             0,  // Coordenada x modificada para comenzar desde el lado izquierdo
             SCREEN_HEIGHT / 2,
@@ -53,7 +82,8 @@ Raycaster handleMouseEvents(SDL_Event event, Raycaster r) {
 
 // Function to display the welcome message
 void displayWelcomeMessage() {
-    clear();
+    SDL_SetRenderDrawColor(renderer, 56, 56, 56, 255);
+    SDL_RenderClear(renderer);
 
     SDL_Color textColor = { 255, 255, 255, 255 };
     SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "Welcome to Minecraft DOOM style!", textColor);
@@ -73,7 +103,8 @@ void displayWelcomeMessage() {
 }
 
 void displayWinningMessage() {
-    clear();
+    SDL_SetRenderDrawColor(renderer, 56, 56, 56, 255);
+    SDL_RenderClear(renderer);
 
     SDL_Color textColor = { 255, 255, 255, 255 };
     SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "You reached the goal!", textColor);
@@ -93,7 +124,8 @@ void displayWinningMessage() {
 }
 
 void displayLosingMessage() {
-    clear();
+    SDL_SetRenderDrawColor(renderer, 56, 56, 56, 255);
+    SDL_RenderClear(renderer);
 
     SDL_Color textColor = { 255, 255, 255, 255 };
     SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "You lost, but try again!", textColor);
@@ -228,21 +260,27 @@ int main() {
                 }
             } else if (event.type == SDL_MOUSEMOTION) {
                 r = handleMouseEvents(event, r);
+            } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    int res = r.render();
+                    
+                    if (res == 0) {
+                        displayWinningMessage();
+                        SDL_Delay(2000);
+                        running = false;
+                    }
+                }
             }
         }
 
         clear();
-        draw_floor();
+        draw_floor(value);
 
         int res = r.render();
 
         drawUI(value);
 
-        if (res == 0) {
-            displayWinningMessage();
-            SDL_Delay(2000);
-            running = false;
-        } else if (res == 1) {
+        if (res == 1) {
             displayLosingMessage();
             SDL_Delay(2000);
             running = false;
